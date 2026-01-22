@@ -1,38 +1,717 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Screen Recorder Pro - Record Your Screen Online & Offline</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screen Recorder Pro</title>
+  <meta name="description" content="Professional screen and camera recording tool" />
+  
+  <!-- React and ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --destructive: #ef4444;
+      --destructive-hover: #dc2626;
+      --bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --radius: 0.5rem;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(to bottom right, #eff6ff, #e0e7ff);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin: 0 0 0.5rem 0;
+      color: #111827;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      margin: 0;
+    }
+
+    /* Components */
+    .card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      gap: 0.5rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:not(:disabled):hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-destructive {
+      background-color: var(--destructive);
+      color: white;
+    }
+
+    .btn-destructive:not(:disabled):hover {
+      background-color: var(--destructive-hover);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-outline:not(:disabled):hover {
+      background-color: #f9fafb;
+    }
+
+    .btn-lg {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+    }
+
+    /* Tabs */
+    .tabs-list {
+      display: flex;
+      background: #e5e7eb;
+      padding: 0.25rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-trigger {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem 1rem;
+      border-radius: calc(var(--radius) - 2px);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab-trigger.active {
+      background: white;
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Video Area */
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Lists */
+    .recording-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .recording-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+    }
+
+    .recording-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .recording-name {
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .recording-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    /* Utilities */
+    .text-center { text-align: center; }
+    .text-red { color: var(--destructive); }
+    .text-blue { color: var(--primary); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #e5e7eb;
+      color: var(--text-muted);
+      gap: 4px;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-error { background: #fee2e2; color: #991b1b; }
+
+    .hidden { display: none; }
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    .timer {
+      font-family: monospace;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .controls { flex-direction: column; align-items: stretch; }
+      .btn-lg { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+  // --- Icon Components (SVG) ---
+  const Icons = {
+    Monitor: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>,
+    Camera: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
+    Video: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>,
+    Square: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>,
+    Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
+    Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
+    Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    HardDrive: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>,
+    AlertTriangle: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
+    CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+    RefreshCw: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+  };
+
+  // --- IndexedDB Helper (Minimal) ---
+  class DB {
+    constructor() {
+      this.dbName = 'ScreenRecorderDB';
+      this.version = 1;
+      this.db = null;
+    }
+
+    async init() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(this.dbName, this.version);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('recordings')) {
+            db.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+          }
+        };
+        request.onsuccess = (e) => {
+          this.db = e.target.result;
+          resolve(this.db);
+        };
+        request.onerror = (e) => reject(e);
+      });
+    }
+
+    async saveRecording(blob) {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction('recordings', 'readwrite');
+        const store = tx.objectStore('recordings');
+        const data = {
+          blob,
+          timestamp: Date.now(),
+          size: blob.size,
+          type: blob.type
+        };
+        const req = store.add(data);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async getRecordings() {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction('recordings', 'readonly');
+        const store = tx.objectStore('recordings');
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result.sort((a,b) => b.timestamp - a.timestamp));
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async deleteRecording(id) {
+      if (!this.db) await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = this.db.transaction('recordings', 'readwrite');
+        const store = tx.objectStore('recordings');
+        const req = store.delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+  }
+
+  const storage = new DB();
+
+  // --- Main Application ---
+  function App() {
+    const [activeTab, setActiveTab] = React.useState('record');
+    const [isRecording, setIsRecording] = React.useState(false);
+    const [recordedBlob, setRecordedBlob] = React.useState(null);
+    const [recordingTime, setRecordingTime] = React.useState(0);
+    const [mediaBlobUrl, setMediaBlobUrl] = React.useState(null);
+    const [savedRecordings, setSavedRecordings] = React.useState([]);
+    const [error, setError] = React.useState('');
+    const [isMobile, setIsMobile] = React.useState(false);
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#3b82f6" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Screen Recorder Pro" />
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Professional screen and camera recording tool that works online and offline. Record your screen, camera, or both with high quality on any device." />
-    <meta name="keywords" content="screen recorder, camera recorder, video recording, offline recording, PWA, cross-platform" />
-    <meta name="author" content="Screen Recorder Pro" />
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Screen Recorder Pro - Record Your Screen Online & Offline" />
-    <meta property="og:description" content="Professional screen and camera recording tool that works online and offline." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="/" />
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Screen Recorder Pro" />
-    <meta name="twitter:description" content="Professional screen and camera recording tool that works online and offline." />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    // Refs
+    const mediaRecorderRef = React.useRef(null);
+    const streamRef = React.useRef(null);
+    const timerRef = React.useRef(null);
+    const chunksRef = React.useRef([]);
+
+    // Initialize
+    React.useEffect(() => {
+      const checkMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(checkMobile);
+      loadRecordings();
+    }, []);
+
+    // Timer
+    React.useEffect(() => {
+      if (isRecording) {
+        timerRef.current = setInterval(() => {
+          setRecordingTime(t => t + 1);
+        }, 1000);
+      } else {
+        clearInterval(timerRef.current);
+      }
+      return () => clearInterval(timerRef.current);
+    }, [isRecording]);
+
+    const loadRecordings = async () => {
+      try {
+        const recs = await storage.getRecordings();
+        setSavedRecordings(recs);
+      } catch (err) {
+        console.error("DB Error", err);
+      }
+    };
+
+    const formatTime = (seconds) => {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    };
+
+    const formatSize = (bytes) => {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const getOptimalMimeType = () => {
+      const types = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm',
+        'video/mp4' // Safari fallback
+      ];
+      for (const type of types) {
+        if (MediaRecorder.isTypeSupported(type)) return type;
+      }
+      return '';
+    };
+
+    const startRecording = async (type) => {
+      setError('');
+      setRecordedBlob(null);
+      setMediaBlobUrl(null);
+      chunksRef.current = [];
+
+      try {
+        let stream;
+        if (type === 'screen') {
+          // Screen recording
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 30 },
+            audio: true
+          });
+        } else {
+          // Camera recording
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user' },
+            audio: true
+          });
+        }
+
+        streamRef.current = stream;
+        
+        const mimeType = getOptimalMimeType();
+        if (!mimeType) throw new Error("No supported MIME type found");
+
+        const recorder = new MediaRecorder(stream, { mimeType });
+        mediaRecorderRef.current = recorder;
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+
+        recorder.onstop = async () => {
+          const blob = new Blob(chunksRef.current, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          setRecordedBlob(blob);
+          setMediaBlobUrl(url);
+          setIsRecording(false);
+          
+          // Save to DB
+          try {
+            await storage.saveRecording(blob);
+            await loadRecordings();
+          } catch (e) {
+            console.error("Save failed", e);
+          }
+
+          // Stop all tracks to release camera/screen
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        // Handle user clicking "Stop Sharing" in browser UI
+        if (type === 'screen') {
+          stream.getVideoTracks()[0].onended = () => {
+            stopRecording();
+          };
+        }
+
+        recorder.start(1000); // Collect chunks every 1s
+        setIsRecording(true);
+        setRecordingTime(0);
+
+        // Live preview
+        setMediaBlobUrl(URL.createObjectURL(stream));
+
+      } catch (err) {
+        console.error(err);
+        // If user cancels screen selection, error name is 'NotAllowedError' usually
+        if (err.name !== 'NotAllowedError') {
+            setError(`Error: ${err.message}`);
+        }
+      }
+    };
+
+    const stopRecording = () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+
+    const downloadCurrent = () => {
+      if (!recordedBlob) return;
+      const url = URL.createObjectURL(recordedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recording-${Date.now()}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    const downloadSaved = (blob, id) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `saved-recording-${id}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    const deleteSaved = async (id) => {
+      try {
+        await storage.deleteRecording(id);
+        await loadRecordings();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    // Helper to check support
+    const supportsScreen = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+    const supportsCamera = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+    return (
+      <div className="container">
+        <div className="header">
+          <h1>Screen Recorder Pro</h1>
+          <p>Record your screen, camera, or browser tab instantly.</p>
+          
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <span className={`badge ${supportsScreen ? 'badge-success' : 'badge-error'}`}>
+              {supportsScreen ? <Icons.CheckCircle /> : <Icons.AlertTriangle />}
+              Screen API
+            </span>
+            <span className={`badge ${supportsCamera ? 'badge-success' : 'badge-error'}`}>
+              {supportsCamera ? <Icons.CheckCircle /> : <Icons.AlertTriangle />}
+              Camera API
+            </span>
+          </div>
+        </div>
+
+        {error && (
+          <div style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+             <Icons.AlertTriangle /> {error}
+          </div>
+        )}
+
+        {/* Navigation Tabs */}
+        <div className="tabs-list">
+          <button 
+            className={`tab-trigger ${activeTab === 'record' ? 'active' : ''}`}
+            onClick={() => setActiveTab('record')}
+          >
+            Record
+          </button>
+          <button 
+            className={`tab-trigger ${activeTab === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveTab('saved')}
+          >
+            Saved Recordings ({savedRecordings.length})
+          </button>
+        </div>
+
+        {activeTab === 'record' && (
+          <div>
+            {/* Main Preview Area */}
+            <div className="card">
+              <div className="video-container">
+                {mediaBlobUrl || recordedBlob ? (
+                  <video 
+                    src={mediaBlobUrl} 
+                    controls={!isRecording} 
+                    autoPlay={isRecording} 
+                    muted={isRecording}
+                  />
+                ) : (
+                  <div style={{color: '#6b7280', textAlign:'center'}}>
+                    <div style={{fontSize:'3rem', opacity:0.3, marginBottom:'1rem'}}>📹</div>
+                    <p>Preview will appear here</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Timer */}
+              {isRecording && (
+                <div className="text-center" style={{ marginBottom: '1rem' }}>
+                  <div className="timer text-red">{formatTime(recordingTime)}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Recording...</div>
+                </div>
+              )}
+
+              {/* Controls */}
+              <div className="controls">
+                {!isRecording ? (
+                  <>
+                    {!isMobile && (
+                      <button 
+                        className="btn btn-primary btn-lg"
+                        onClick={() => startRecording('screen')}
+                        disabled={!supportsScreen}
+                      >
+                        <Icons.Monitor /> Record Screen
+                      </button>
+                    )}
+                    <button 
+                      className="btn btn-primary btn-lg"
+                      onClick={() => startRecording('camera')}
+                      disabled={!supportsCamera}
+                      style={isMobile ? { width: '100%' } : {}}
+                    >
+                      <Icons.Camera /> Record Camera
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    className="btn btn-destructive btn-lg"
+                    onClick={stopRecording}
+                  >
+                    <Icons.Square /> Stop Recording
+                  </button>
+                )}
+              </div>
+
+              {/* Download Action */}
+              {recordedBlob && !isRecording && (
+                <div className="text-center" style={{paddingTop: '1rem', borderTop: '1px solid #e5e7eb'}}>
+                  <button className="btn btn-outline" onClick={downloadCurrent}>
+                    <Icons.Download /> Download Video
+                  </button>
+                  <button className="btn btn-outline" onClick={() => { setRecordedBlob(null); setMediaBlobUrl(null); }}>
+                    New
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'saved' && (
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title"><Icons.Video /> Library</h3>
+            </div>
+            <div className="card-content">
+              {savedRecordings.length === 0 ? (
+                <p className="text-center" style={{color: '#6b7280'}}>No saved recordings found.</p>
+              ) : (
+                <div className="recording-list">
+                  {savedRecordings.map(rec => (
+                    <div key={rec.id} className="recording-item">
+                      <div className="recording-info">
+                        <div className="recording-name">Recording #{rec.id}</div>
+                        <div className="recording-meta">
+                          <span><Icons.Clock /> {new Date(rec.timestamp).toLocaleString()}</span>
+                          <span><Icons.HardDrive /> {formatSize(rec.size)}</span>
+                        </div>
+                      </div>
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button className="btn btn-outline btn-icon" onClick={() => downloadSaved(rec.blob, rec.id)} title="Download">
+                          <Icons.Download />
+                        </button>
+                        <button className="btn btn-outline btn-icon" style={{color: 'var(--destructive)', borderColor: 'var(--destructive)'}} onClick={() => deleteSaved(rec.id)} title="Delete">
+                          <Icons.Trash />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{textAlign: 'center', marginTop: '3rem', color: '#9ca3af', fontSize: '0.8rem'}}>
+          <p>Screen Recorder Pro &copy; {new Date().getFullYear()}</p>
+          <p>Stored locally in your browser. No data is uploaded.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
+
+</script>
+</body>
 </html>
